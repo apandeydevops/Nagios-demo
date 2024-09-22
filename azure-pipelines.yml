@@ -1,0 +1,66 @@
+ches:
+    include:
+      - main
+
+parameters:
+  - name: newBranchName
+    displayName: "New Branch Name"
+    type: string
+    default: "nagios-update-branch"
+
+  - name: nagios_server_ip
+    displayName: "Nagios Server IP"
+    type: string
+    default: "127.0.0.1"
+
+  - name: ubuntu_client_ip
+    displayName: "Ubuntu Client IP"
+    type: string
+    default: "127.0.0.2"
+
+  - name: windows_client_ip
+    displayName: "Windows Client IP"
+    type: string
+    default: "127.0.0.3"
+
+variables:
+  repositoryName: 'Nagios-demo'
+  gitUserEmail: 'your-email@example.com'   # Set your email
+  gitUserName: 'Azure DevOps CI'           # Git Username
+
+stages:
+  - stage: UpdateInventoryFile
+    displayName: "Create Branch & Update Inventory"
+    jobs:
+      - job: ModifyInventory
+        displayName: "Modify inventory/nagios-server file"
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+
+          # Set up Git Configuration for committing changes
+          - script: |
+              git config user.email ${{ variables.gitUserEmail }}
+              git config user.name ${{ variables.gitUserName }}
+            displayName: "Configure Git"
+
+          # Create a new branch based on user input
+          - script: |
+              git checkout -b ${{ parameters.newBranchName }}
+            displayName: "Create a New Branch"
+
+          # Modify the inventory file with user inputs
+          - script: |
+              sed -i "s/\[nagios_server\]/\[nagios_server\]\n${{ parameters.nagios_server_ip }} ansible_user=azureuser ansible_ssh_private_key_file=\/path\/to\/private\/key/" inventory/nagios-server
+              sed -i "s/\[ubuntu_client\]/\[ubuntu_client\]\n${{ parameters.ubuntu_client_ip }} ansible_user=azureuser ansible_ssh_private_key_file=\/path\/to\/private\/key/" inventory/nagios-server
+              sed -i "s/\[windows_client\]/\[windows_client\]\n${{ parameters.windows_client_ip }} ansible_user=azureuser ansible_password=YourWindowsPassword/" inventory/nagios-server
+            displayName: "Modify Inventory File with User Input"
+
+          # Stage, commit, and push changes
+          - script: |
+              git add inventory/nagios-server
+              git commit -m "Updated inventory/nagios-server with new IP addresses"
+              git push origin ${{ parameters.newBranchName }}
+            displayName: "Commit and Push Changes"
+
