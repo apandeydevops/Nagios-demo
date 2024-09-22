@@ -1,0 +1,20 @@
+---
+- hosts: nagios_server
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt: update_cache=yes force_apt_get=yes
+
+    - name: Install Nagios
+      apt:
+        name:
+          - nagios4
+          - nagios-plugins
+          - nagios-nrpe-plugin
+        state: present
+
+    - name: Start and enable Nagios service
+      service:
+        name: nagios4
+        state: started
+        enabled: true

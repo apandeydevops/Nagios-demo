@@ -1,0 +1,24 @@
+---
+- hosts: ubuntu_client
+  become: yes
+  tasks:
+    - name: Install NRPE and plugins
+      apt:
+        name:
+          - nagios-nrpe-server
+          - nagios-plugins
+        state: present
+
+    - name: Configure NRPE
+      lineinfile:
+        path: /etc/nagios/nrpe.cfg
+        regexp: '^allowed_hosts='
+        line: 'allowed_hosts=127.0.0.1,<nagios_server_ip>'
+        state: present
+
+    - name: Restart NRPE service
+      service:
+        name: nagios-nrpe-server
+        state: restarted
+        enabled: true
+
