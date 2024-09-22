@@ -1,0 +1,7 @@
+[nagios_server]
+<nagios_server_ip> ansible_user=azureuser ansible_ssh_private_key_file=/path/to/private/key
+[ubuntu_client]
+<ubuntu_client_ip> ansible_user=azureuser ansible_ssh_private_key_file=/path/to/private/key
+[windows_client]
+<windows_client_ip> ansible_user=azureuser ansible_password=YourWindowsPassword
+
